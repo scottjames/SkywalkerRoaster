@@ -1,23 +1,23 @@
-//#define __DEBUG__
-//#define __WARN__
+// #define __DEBUG__
+// #define __WARN__
 //#define USE_TIMER_1 true
 
 #include <limits.h>
 
 // Pin Definitions
-const int txPin = 3;
-const int rxPin = 2;
+const int txPin = 3;  // white D-
+const int rxPin = 2;  // green D+
 
 // Timing Constants
-const int preamble = 7000; //microseconds
-const int one_length = 1200; // Threshold for interpreting a bit as '1', in microseconds.
-const int TIMEOUT_PREAMBLE_SEARCH = 500; // Timeout for preamble search, in milliseconds. Based on 151ms: 7.5ms preamble + 133.5ms (56 bits as '1') + 10ms between messages. Searhing for preamble for the time of two messages (151ms*2) with margin.
-const int TIMEOUT_PREAMBLE_PULSEIN = 25000; //Timeout (microseconds), for preample detection. Based on: 10ms (time between messages) + 7.5ms (preamble) + 4ms (time to first bit after preamble) = 20.5ms = 20500 µs
-const int TIMEOUT_LOGIC_PULSEIN = 8000; // Timeout (microseconds) for every pulseIn call. Based on: 4ms (to first bit) + 1,5ms (logic 1) + 0,75ms (time between pulse)= =6.250ms = 6250 µs 
+const int preamble = 7000;                   // microseconds
+const int one_length = 1200;                 // Threshold for interpreting a bit as '1', in microseconds.
+const int TIMEOUT_PREAMBLE_SEARCH = 500;     // Timeout for preamble search, in milliseconds. Based on 151ms: 7.5ms preamble + 133.5ms (56 bits as '1') + 10ms between messages. Searhing for preamble for the time of two messages (151ms*2) with margin.
+const int TIMEOUT_PREAMBLE_PULSEIN = 25000;  // Timeout (microseconds), for preample detection. Based on: 10ms (time between messages) + 7.5ms (preamble) + 4ms (time to first bit after preamble) = 20.5ms = 20500 µs
+const int TIMEOUT_LOGIC_PULSEIN = 8000;      // Timeout (microseconds) for every pulseIn call. Based on: 4ms (to first bit) + 1,5ms (logic 1) + 0,75ms (time between pulse)= =6.250ms = 6250 µs
 
 // Buffer Sizes
-const int roasterLength = 7; //Bytes
-const int controllerLength = 6; //Bytes
+const int roasterLength = 7;     //Bytes
+const int controllerLength = 6;  //Bytes
 
 // Buffer Definitions
 uint8_t receiveBuffer[roasterLength];
@@ -36,7 +36,7 @@ double tempC = 0.0;
 char CorF = 'F';
 
 //Failsafe variables
-const int maxTemp = 300; //in Celcius
+const int maxTemp = 300;  //in Celcius
 unsigned long lastEventTime = 0;
 unsigned long lastEventTimeout = 10000000;
 bool failedToReadRoaster = false;
@@ -132,9 +132,9 @@ void receiveSerialBitsFromRoaster(int bytes, int pin) {  //Receives serial bits 
     pulseDuration = pulseIn(pin, LOW, TIMEOUT_PREAMBLE_PULSEIN);
     if (pulseDuration >= (preamble - 500) && pulseDuration <= (preamble + 1000)) {  // Check that the pulse is approximately 7.5ms
       preambleDetected = true;                                                      // Preamble detected
-  #ifdef __DEBUG__
-        Serial.println("Preamble detected");
-  #endif
+#ifdef __DEBUG__
+      Serial.println("Preamble detected");
+#endif
       break;
     }
   }
@@ -146,10 +146,10 @@ void receiveSerialBitsFromRoaster(int bytes, int pin) {  //Receives serial bits 
   for (int i = 0; i < bits; i++) {  //Read the proper number of bits..
     unsigned long duration = pulseIn(pin, LOW, TIMEOUT_LOGIC_PULSEIN);
     if (duration == 0) {
-  #ifdef __DEBUG__
-        Serial.print("Timeout or no pulse detected at bit ");
-        Serial.println(i);
-  #endif
+#ifdef __DEBUG__
+      Serial.print("Timeout or no pulse detected at bit ");
+      Serial.println(i);
+#endif
       // Handle the error, e.g., break, set an error flag, etc.
       failedToReadRoaster = true;
       return;
@@ -183,9 +183,9 @@ bool calculateRoasterChecksum() {
   return sum == receiveBuffer[roasterLength - 1];
 }
 
-void printBuffer(int bytes) {
+void printReceiveBuffer(int bytes) {
   for (int i = 0; i < bytes; i++) {
-    Serial.print(sendBuffer[i], HEX);
+    Serial.print(receiveBuffer[i], HEX);
     Serial.print(',');
   }
   Serial.print("\n");
@@ -217,7 +217,7 @@ void getRoasterMessage() {
   }
 
 #ifdef __DEBUG__
-  printBuffer(roasterLength);
+  printReceiveBuffer(roasterLength);
 #endif
 
 #ifdef __WARN__
@@ -227,7 +227,7 @@ void getRoasterMessage() {
     Serial.println(" tries to read roaster.");
   }
 #endif
-  roasterReadAttempts = 0; //reset counter
+  roasterReadAttempts = 0;  //reset counter
   temp = calculateTemp();
 }
 void handleHEAT(uint8_t value) {
