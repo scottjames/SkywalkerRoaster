@@ -3,8 +3,15 @@
 // #define USE_TIMER_1 true
 
 #include <limits.h>
+#include <max6675.h> // from Adafruit
+#include <SPI.h>
 
 // Pin Definitions
+int pinSCK = 10;
+int pinCS = 11;
+int pinSO = 12;
+MAX6675 thermocouple(pinSCK, pinCS, pinSO);
+
 const int txPin = 3; // white D-
 const int rxPin = 2; // green D+
 
@@ -123,9 +130,11 @@ double calculateTemp()
 #endif
 
   double v = 583.1509258523457 + -714.0345395202813 * x + -196.071718077524 * y + 413.37964344228334 * x * x + 2238.149675349052 * x * y + -4099.91031297056 * y * y + 357.49007607425233 * x * x * x + -5001.419602972793 * x * x * y + 8242.08618555862 * x * y * y + 247.6124684730026 * y * y * y + -555.8643213534281 * x * x * x * x + 3879.431274654493 * x * x * x * y + -6885.682277959339 * x * x * y * y + 2868.4191998911865 * x * y * y * y + -1349.1588373011923 * y * y * y * y;
+
   tempC = (v - 32) * 5 / 9;
+
   if (CorF == 'C')
-    v = (v - 32) * 5 / 9;
+    v = tempC;
 
   return v;
 }
