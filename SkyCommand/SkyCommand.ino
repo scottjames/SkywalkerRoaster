@@ -1,6 +1,45 @@
-// #define __DEBUG__
-// #define __WARN__
+#define __DEBUG__
+#define __WARN__
 // #define USE_TIMER_1 true
+
+/**
+ * SkyCommand32 - An Arduino based controller for the Skywalker roaster.
+ * Based on SkyCommand by jmoore52 //github.com/jmoore52/SkywalkerRoaster.git
+ *
+ * Communicates with Artisan via serial commands.
+ * Using ESP32 microcontroller with MAX6675 thermocouple for environment temp.
+ * USB-A connects to Artisan serial interface, with D- as TX and D+ as RX.
+ *
+ * Someday...
+ *  1) Add OLED display showing temps, heat, vent, drum status, etc.
+ *  2) Buttons for start/stop, heat up, cool down, drum on/off
+ *  3) Rotary encoder for easy adjustment of heat.
+ *  4) Data logging to SD card (with RTC for timestamps).
+ *  5) Web interface for control and monitoring.
+ *  6) Bluetooth for mobile app control.
+ *  7) PID control for more precise temperature management.
+ *  8) Safety features like over-temp shutdown, etc.
+ *  9) Support for multiple roaster models.
+ * 10) Integration with home automation systems.
+ * 11) OTA firmware updates.
+ *
+ *
+ * 12) User profiles for different roast preferences.
+ * 13) Roast curve visualization on OLED or web interface.
+ * 14) Voice control via smart assistants.
+ * 15) Mobile app for remote monitoring and control.
+ * 16) Advanced analytics for roast optimization.
+ * 17) Community sharing of roast profiles.
+ * 18) Integration with coffee recipe apps.
+ * 19) Support for additional sensors (humidity, airflow, etc.)
+ * 20) Customizable alerts and notifications.
+ * 21) Energy consumption monitoring.
+ * 22) Multi-language support.
+ * 23) Modular design for easy upgrades and maintenance.
+ * 24) Open source for community contributions and improvements.
+ * 25) Comprehensive documentation and tutorials.
+ *
+ */
 
 #include <limits.h>
 #include <max6675.h> // from Adafruit
@@ -40,6 +79,7 @@ int checkByte = 5;
 
 double temp = 0.0;
 double tempC = 0.0;
+double cet = 0.0; // thermocouple environment temp - celcius ET
 char CorF = 'F';
 
 // Failsafe variables
@@ -129,7 +169,14 @@ double calculateTemp()
   Serial.println(y);
 #endif
 
-  double v = 583.1509258523457 + -714.0345395202813 * x + -196.071718077524 * y + 413.37964344228334 * x * x + 2238.149675349052 * x * y + -4099.91031297056 * y * y + 357.49007607425233 * x * x * x + -5001.419602972793 * x * x * y + 8242.08618555862 * x * y * y + 247.6124684730026 * y * y * y + -555.8643213534281 * x * x * x * x + 3879.431274654493 * x * x * x * y + -6885.682277959339 * x * x * y * y + 2868.4191998911865 * x * y * y * y + -1349.1588373011923 * y * y * y * y;
+  double v = 583.1509258523457 
+  + -714.0345395202813 * x + -196.071718077524 * y 
+  + 413.37964344228334 * x * x + 2238.149675349052 * x * y 
+  + -4099.91031297056 * y * y + 357.49007607425233 * x * x * x 
+  + -5001.419602972793 * x * x * y + 8242.08618555862 * x * y * y 
+  + 247.6124684730026 * y * y * y + -555.8643213534281 * x * x * x * x
+  + 3879.431274654493 * x * x * x * y + -6885.682277959339 * x * x * y * y
+  + 2868.4191998911865 * x * y * y * y + -1349.1588373011923 * y * y * y * y;
 
   tempC = (v - 32) * 5 / 9;
 
@@ -239,10 +286,15 @@ void getRoasterMessage()
   receiveSerialBitsFromRoaster(roasterLength, rxPin);
   passedChecksum = calculateRoasterChecksum();
 
+  cet = thermocouple.readCelsius();
+
   if (passedChecksum == false || failedToReadRoaster == true)
   {
 #ifdef __WARN__
     Serial.println(" Failed to read roaster.");
+    Serial.print("Temp CET=");
+    Serial.println(cet);
+
 #endif
     return;
   }
@@ -264,6 +316,7 @@ void getRoasterMessage()
 #endif
   roasterReadAttempts = 0; // reset counter
   temp = calculateTemp();
+  // cet = thermocouple.readCelsius();
 }
 
 void handleHEAT(uint8_t value)
@@ -324,7 +377,7 @@ void handleREAD()
 {
   Serial.print(0.0);
   Serial.print(',');
-  Serial.print(temp);
+  Serial.print(cet);
   Serial.print(',');
   Serial.print(temp);
   Serial.print(',');
