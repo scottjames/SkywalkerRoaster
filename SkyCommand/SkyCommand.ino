@@ -1,43 +1,32 @@
-#define __DEBUG__
-#define __WARN__
+// #define __DEBUG__
+// #define __WARN__
 // #define USE_TIMER_1 true
 
 /**
  * SkyCommand32 - An Arduino based controller for the Skywalker roaster.
- * Based on SkyCommand by jmoore52 //github.com/jmoore52/SkywalkerRoaster.git
+ * Based on SkyCommand by jmoore52 https://github.com/jmoore52/SkywalkerRoaster.git
  *
  * Communicates with Artisan via serial commands.
  * Using ESP32 microcontroller with MAX6675 thermocouple for environment temp.
  * USB-A connects to Artisan serial interface, with D- as TX and D+ as RX.
  *
  * Someday...
- *  1) Add OLED display showing temps, heat, vent, drum status, etc.
- *  2) Buttons for start/stop, heat up, cool down, drum on/off
- *  3) Rotary encoder for easy adjustment of heat.
- *  4) Data logging to SD card (with RTC for timestamps).
- *  5) Web interface for control and monitoring.
- *  6) Bluetooth for mobile app control.
- *  7) PID control for more precise temperature management.
- *  8) Safety features like over-temp shutdown, etc.
- *  9) Support for multiple roaster models.
- * 10) Integration with home automation systems.
- * 11) OTA firmware updates.
- *
- *
- * 12) User profiles for different roast preferences.
- * 13) Roast curve visualization on OLED or web interface.
- * 14) Voice control via smart assistants.
- * 15) Mobile app for remote monitoring and control.
- * 16) Advanced analytics for roast optimization.
- * 17) Community sharing of roast profiles.
- * 18) Integration with coffee recipe apps.
- * 19) Support for additional sensors (humidity, airflow, etc.)
- * 20) Customizable alerts and notifications.
- * 21) Energy consumption monitoring.
- * 22) Multi-language support.
- * 23) Modular design for easy upgrades and maintenance.
- * 24) Open source for community contributions and improvements.
- * 25) Comprehensive documentation and tutorials.
+ *  - Add OLED display showing temps, heat, vent, drum status, etc.
+ *  - Buttons for start/stop, heat up, cool down, drum on/off
+ *  - Rotary encoder for easy adjustment of heat.
+ *  - Web interface for control and monitoring.
+ *  - Bluetooth Serial port to avoid cables.
+ *  - JSON web socket protocol to Artisan instead of BT Serial.
+ *  - PID control for more precise temperature management.
+ *  - Safety features like over-temp shutdown, etc.
+ *  - Support for multiple roaster models.
+ *  - OTA firmware updates.
+ *  - Roast curve visualization on OLED or web interface.
+ *  - Mobile app for remote monitoring and control.
+ *  - Support for additional sensors (humidity, airflow, etc.)
+ *  - Customizable alerts and notifications.
+ *  - Energy consumption monitoring.
+ *  - Modular design for easy upgrades and maintenance.
  *
  */
 
@@ -46,9 +35,9 @@
 #include <SPI.h>
 
 // Pin Definitions
-int pinSCK = 10;
-int pinCS = 11;
-int pinSO = 12;
+int pinSCK = 10; // Purple
+int pinCS = 11;  // Yellow
+int pinSO = 12;  // Blue
 MAX6675 thermocouple(pinSCK, pinCS, pinSO);
 
 const int txPin = 3; // white D-
@@ -85,7 +74,7 @@ char CorF = 'F';
 // Failsafe variables
 const int maxTemp = 300; // in Celcius
 unsigned long lastEventTime = 0;
-unsigned long lastEventTimeout = 10000000;
+unsigned long lastEventTimeout = 10 * 10e6; // 10 seconds
 bool failedToReadRoaster = false;
 int roasterReadAttempts = 0;
 
@@ -375,11 +364,11 @@ void handleCHAN()
 
 void handleREAD()
 {
-  Serial.print(0.0);
+  Serial.print(0.0); // ambient temp (unused)
   Serial.print(',');
-  Serial.print(cet);
+  Serial.print(cet); // Chan1 ET
   Serial.print(',');
-  Serial.print(temp);
+  Serial.print(temp); // Chan2 BT
   Serial.print(',');
   Serial.print(sendBuffer[heatByte]);
   Serial.print(',');
